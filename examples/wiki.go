@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/url"
 	"time"
 
@@ -24,7 +25,7 @@ func main() {
 	s := schedulers.NewBasicScheduler()
 	s.Handle(wikiHTMLSpider).Every(30 * time.Second)
 	s.Handle(wikiJSONSpider).Every(20 * time.Second)
-	s.Start()
+	log.Fatal(s.Start())
 }
 
 type WikipediaHTMLSpider struct {
@@ -41,7 +42,10 @@ func (w *WikipediaHTMLSpider) Spin(ctx *spider.Context) error {
 		return err
 	}
 
-	html, _ := ctx.HTMLParser()
+	html, err := ctx.HTMLParser()
+	if err != nil {
+		return err
+	}
 	summary := html.Find("#mw-content-text p").First().Text()
 
 	fmt.Println(summary)
@@ -63,7 +67,10 @@ func (w *WikipediaJSONSpider) Spin(ctx *spider.Context) error {
 	if _, err := ctx.DoRequest(); err != nil {
 		return err
 	}
-	jsonparser, _ := ctx.JSONParser()
+	jsonparser, err := ctx.JSONParser()
+	if err != nil {
+		return err
+	}
 	pages, err := jsonparser.GetPath("query", "pages").Map()
 	if err != nil {
 		return err

@@ -36,7 +36,7 @@ func main() {
 	scheduler.Handle(wikiSpider).Every(45 * time.Second)
 
 	// Start the scheduler
-	scheduler.Start()
+	log.Fatal(scheduler.Start())
 }
 
 type WikipediaHTMLSpider struct {
@@ -57,7 +57,10 @@ func (w *WikipediaHTMLSpider) Spin(ctx *spider.Context) error {
 	}
 
 	// Get goquery's html parser
-	htmlparser, _ := ctx.HTMLParser()
+	htmlparser, err := ctx.HTMLParser()
+  if err != nil {
+    return err
+  }
 	// Get the first paragraph of the wikipedia page
 	summary := htmlparser.Find("#mw-content-text p").First().Text()
 
