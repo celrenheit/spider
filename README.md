@@ -19,6 +19,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/celrenheit/spider"
@@ -58,9 +59,9 @@ func (w *WikipediaHTMLSpider) Spin(ctx *spider.Context) error {
 
 	// Get goquery's html parser
 	htmlparser, err := ctx.HTMLParser()
-  if err != nil {
-    return err
-  }
+	if err != nil {
+		return err
+	}
 	// Get the first paragraph of the wikipedia page
 	summary := htmlparser.Find("#mw-content-text p").First().Text()
 
