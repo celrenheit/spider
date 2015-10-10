@@ -22,3 +22,30 @@ func TestContextStore(t *testing.T) {
 		t.Error("Not equal")
 	}
 }
+
+func TestParentAndChildren(t *testing.T) {
+	parent := NewContext()
+	child1 := NewContext()
+	child2 := NewContext()
+	child3 := NewContext()
+
+	child1.SetParent(parent)
+	child2.SetParent(parent)
+	child3.SetParent(child2)
+
+	if child1.Parent != parent {
+		t.Error("child1 should be a child of parent")
+	}
+
+	if len(parent.Children) != 2 {
+		t.Error("parent should have two children")
+	}
+
+	if child3.Parent != child2 {
+		t.Error("child3 should be a child of child2")
+	}
+
+	if len(child2.Children) != 1 {
+		t.Error("child2 should have exactly one child")
+	}
+}

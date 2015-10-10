@@ -24,18 +24,19 @@ var (
 // It contains an HTTP Client and an HTTP Request.
 // Context can execute an HTTP Request.
 type Context struct {
-	Client      *http.Client
-	response    *http.Response
-	request     *http.Request
-	ClientReset bool
-	Parent      *Context
-	store       *store
+	Client   *http.Client
+	response *http.Response
+	request  *http.Request
+	Parent   *Context
+	Children []*Context
+	store    *store
 }
 
 // NewContext returns a new Context.
 func NewContext() *Context {
 	return &Context{
-		store: NewKVStore(),
+		store:    NewKVStore(),
+		Children: make([]*Context, 0),
 	}
 }
 
@@ -193,6 +194,13 @@ func (c *Context) ExtendWithRequest(ctx Context, r *http.Request) *Context {
 	newCtx.SetRequest(r)
 	newCtx.Parent = c
 	return newCtx
+}
+
+// Set a parent context to the current context.
+// It will also add the current context to the list of children of the parent context.
+func (c *Context) SetParent(parent *Context) {
+	c.Parent = parent
+	parent.Children = append(parent.Children, c)
 }
 
 // NewKVStore returns a new store.
