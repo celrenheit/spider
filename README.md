@@ -1,6 +1,7 @@
 # Spider [![Build Status](https://travis-ci.org/celrenheit/spider.svg?branch=master)](https://travis-ci.org/celrenheit/spider) [![GoDoc](https://godoc.org/github.com/celrenheit/spider?status.svg)](https://godoc.org/github.com/celrenheit/spider) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Spider package provides some simple spider and scheduler interfaces for scraping and parsing HTML and JSON pages.
+This package provides a simple way, yet extensible, to scrape HTML and JSON pages. It uses spiders around the web scheduled at certain configurable intervals to fetch data.
+It is written in [Golang](https://golang.org/) and is [MIT licensed](https://github.com/celrenheit/spider#license).
 
 # Installation
 
@@ -13,6 +14,14 @@ $ go get -u github.com/celrenheit/spider
 The documentation is hosted on [GoDoc](https://godoc.org/github.com/celrenheit/spider).
 
 # Usage
+
+In order, to create your own spiders you have to implement the [spider.Spider](https://godoc.org/github.com/celrenheit/spider#Spider) interface.
+It has two functions, Setup and Spin.
+
+[Setup](https://godoc.org/github.com/celrenheit/spider#Spider) gets a [Context](https://godoc.org/github.com/celrenheit/spider#Context) and returns a new [Context](https://godoc.org/github.com/celrenheit/spider#Context) with an [error](https://godoc.org/builtin#error) if something wrong happened.
+Usually, it is in this function that you create a new [http client](https://golang.org/pkg/net/http/#Client) and [http request](https://golang.org/pkg/net/http/#Request).
+
+[Spin](https://godoc.org/github.com/celrenheit/spider#Spider) gets a [Context](https://godoc.org/github.com/celrenheit/spider#Context) do its work and returns an [error](https://godoc.org/builtin#error) if necessarry. It is in this function that you do your work ([do a request](https://godoc.org/github.com/celrenheit/spider#Context.DoRequest), handle response, parse [HTML](https://godoc.org/github.com/celrenheit/spider#Context.HTMLParser) or [JSON](https://godoc.org/github.com/celrenheit/spider#Context.JSONParser), etc...). It should return an error if something didn't happened correctly.
 
 ```go
 package main
@@ -70,11 +79,20 @@ func (w *WikipediaHTMLSpider) Spin(ctx *spider.Context) error {
 }
 ```
 
+# Examples
+
+```shell
+$ cd $GOPATH/src/github.com/celrenheit/spider/examples
+$ go run wiki.go
+```
+
 # Contributing
 
 Contributions are welcome ! Feel free to submit a pull request.
 You can improve documentation and examples to start.
 You can also provides spiders and better schedulers.
+
+If you have developed your own spiders or schedulers, I will be pleased to review your code and eventually merge it into the project.
 
 # License
 
