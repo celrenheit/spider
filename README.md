@@ -3,6 +3,8 @@
 This package provides a simple way, yet extensible, to scrape HTML and JSON pages. It uses spiders around the web scheduled at certain configurable intervals to fetch data.
 It is written in [Golang](https://golang.org/) and is [MIT licensed](https://github.com/celrenheit/spider#license).
 
+You can see an example app using this package here: [https://github.com/celrenheit/trending-machine](https://github.com/celrenheit/trending-machine)
+
 # Installation
 
 ```shell
