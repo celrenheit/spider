@@ -32,4 +32,8 @@ type SpiderScheduler interface {
 	BaseSpiderScheduler
 }
 
+type Schedule interface {
+	Next(time.Time) time.Time
+}
+
 type EveryFunc func() time.Duration
