@@ -10,10 +10,17 @@ import (
 
 type InMemory struct {
 	entries Entries
+	addCh   chan *Entry
+	stopCh  chan struct{}
+	running bool
 }
 
 func NewInMemory() *InMemory {
-	return &InMemory{}
+	return &InMemory{
+		addCh:   make(chan *Entry),
+		stopCh:  make(chan struct{}),
+		entries: nil,
+	}
 }
 
 type Entry struct {
@@ -47,7 +54,11 @@ func (in *InMemory) AddWithCtx(sched spider.Schedule, spider spider.Spider, ctx 
 		Schedule: sched,
 		Ctx:      ctx,
 	}
-	in.entries = append(in.entries, entry)
+	if !in.running {
+		in.entries = append(in.entries, entry)
+		return
+	}
+	in.addCh <- entry
 }
 
 func (in *InMemory) AddFunc(sched spider.Schedule, url string, fn func(*spider.Context) error) {
@@ -56,17 +67,25 @@ func (in *InMemory) AddFunc(sched spider.Schedule, url string, fn func(*spider.C
 }
 
 func (in *InMemory) Start() {
-	if len(in.entries) == 0 {
-		panic("No spider registered")
-	}
+	in.running = true
+	go in.start()
+}
+
+func (in *InMemory) start() {
 	now := time.Now()
 	for _, e := range in.entries {
 		e.Next = e.Schedule.Next(now)
 	}
 	for {
 		sort.Sort(in.entries)
-		nextRun := in.entries[0].Next
+		var nextRun time.Time
 
+		if len(in.entries) == 0 {
+			// Wait 1 day if there is no spiders to run
+			nextRun = now.Add(24 * time.Hour)
+		} else {
+			nextRun = in.entries[0].Next
+		}
 		select {
 		case <-time.After(nextRun.Sub(now)):
 			for _, e := range in.entries {
@@ -77,6 +96,18 @@ func (in *InMemory) Start() {
 				go e.Spider.Spin(ctx)
 				e.Next = e.Schedule.Next(nextRun)
 			}
+			continue
+		case e := <-in.addCh:
+			in.entries = append(in.entries, e)
+			e.Next = e.Schedule.Next(now)
+		case <-in.stopCh:
+			return
 		}
+		now = time.Now()
 	}
+}
+
+func (in *InMemory) Stop() {
+	in.stopCh <- struct{}{}
+	in.running = false
 }
