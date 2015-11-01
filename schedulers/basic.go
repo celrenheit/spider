@@ -49,6 +49,8 @@ func (bs *BasicScheduler) addSpider(s spider.Spider, schedule spider.SpiderSched
 // Start starts the Scheduler.
 // It will dispatch each spiders in their own watchers for each duplicated (goroutines).
 func (bs *BasicScheduler) Start() error {
+	fmt.Println("DEPRECATED: Please use InMemory Scheduler")
+	fmt.Println("This scheduler will be removed in 0.3")
 	errChan := make(chan error)
 	doneChan := make(chan struct{})
 
