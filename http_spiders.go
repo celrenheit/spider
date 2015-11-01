@@ -1,12 +1,8 @@
-package spiderutils
+package spider
 
-import (
-	"io"
+import "io"
 
-	"github.com/celrenheit/spider"
-)
-
-type spinFunc func(*spider.Context) error
+type spinFunc func(*Context) error
 
 type spiderFunc struct {
 	method string
@@ -15,10 +11,10 @@ type spiderFunc struct {
 	fn     spinFunc
 }
 
-func (s *spiderFunc) Setup(parent *spider.Context) (*spider.Context, error) {
+func (s *spiderFunc) Setup(parent *Context) (*Context, error) {
 	return NewHTTPContext(s.method, s.url, s.body)
 }
-func (s *spiderFunc) Spin(ctx *spider.Context) error { return s.fn(ctx) }
+func (s *spiderFunc) Spin(ctx *Context) error { return s.fn(ctx) }
 
 func NewHTTPSpider(method, url string, body io.Reader, fn spinFunc) *spiderFunc {
 	return &spiderFunc{

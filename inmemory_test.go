@@ -1,4 +1,4 @@
-package schedulers_test
+package spider_test
 
 import (
 	"testing"
@@ -6,17 +6,15 @@ import (
 
 	"github.com/celrenheit/spider"
 	"github.com/celrenheit/spider/schedule"
-	"github.com/celrenheit/spider/schedulers"
-	"github.com/celrenheit/spider/spiderutils"
 )
 
 func TestInMemory(t *testing.T) {
 	ran := false
-	testSpider := spiderutils.NewGETSpider("http://google.com", func(ctx *spider.Context) error {
+	testSpider := spider.NewGETSpider("http://google.com", func(ctx *spider.Context) error {
 		ran = true
 		return nil
 	})
-	sched := schedulers.NewInMemory()
+	sched := spider.NewScheduler()
 	sched.Add(schedule.Every(1*time.Second), testSpider)
 	sched.Start()
 	dur := 1*time.Second + 500*time.Millisecond
@@ -32,14 +30,14 @@ func TestInMemory(t *testing.T) {
 
 func TestNotRanWhenStopped(t *testing.T) {
 	ran := false
-	testSpider := spiderutils.NewGETSpider("http://google.com", func(ctx *spider.Context) error {
+	testSpider := spider.NewGETSpider("http://google.com", func(ctx *spider.Context) error {
 		ran = true
 		return nil
 	})
 	dur := 1*time.Second + 100*time.Millisecond
 	stopCh := make(chan struct{})
 
-	sched := schedulers.NewInMemory()
+	sched := spider.NewScheduler()
 	sched.Add(schedule.Every(1*time.Second), testSpider)
 	sched.Start()
 

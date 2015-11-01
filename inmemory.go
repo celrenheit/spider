@@ -1,11 +1,8 @@
-package schedulers
+package spider
 
 import (
 	"sort"
 	"time"
-
-	"github.com/celrenheit/spider"
-	"github.com/celrenheit/spider/spiderutils"
 )
 
 type InMemory struct {
@@ -15,7 +12,7 @@ type InMemory struct {
 	running bool
 }
 
-func NewInMemory() *InMemory {
+func NewScheduler() *InMemory {
 	return &InMemory{
 		addCh:   make(chan *Entry),
 		stopCh:  make(chan struct{}),
@@ -24,9 +21,9 @@ func NewInMemory() *InMemory {
 }
 
 type Entry struct {
-	Spider   spider.Spider
-	Schedule spider.Schedule
-	Ctx      *spider.Context
+	Spider   Spider
+	Schedule Schedule
+	Ctx      *Context
 	Next     time.Time
 }
 
@@ -44,11 +41,11 @@ func (e Entries) Less(i, j int) bool {
 	return e[i].Next.Before(e[j].Next)
 }
 
-func (in *InMemory) Add(sched spider.Schedule, spider spider.Spider) {
+func (in *InMemory) Add(sched Schedule, spider Spider) {
 	in.AddWithCtx(sched, spider, nil)
 }
 
-func (in *InMemory) AddWithCtx(sched spider.Schedule, spider spider.Spider, ctx *spider.Context) {
+func (in *InMemory) AddWithCtx(sched Schedule, spider Spider, ctx *Context) {
 	entry := &Entry{
 		Spider:   spider,
 		Schedule: sched,
@@ -61,8 +58,8 @@ func (in *InMemory) AddWithCtx(sched spider.Schedule, spider spider.Spider, ctx 
 	in.addCh <- entry
 }
 
-func (in *InMemory) AddFunc(sched spider.Schedule, url string, fn func(*spider.Context) error) {
-	s := spiderutils.NewGETSpider(url, fn)
+func (in *InMemory) AddFunc(sched Schedule, url string, fn func(*Context) error) {
+	s := NewGETSpider(url, fn)
 	in.AddWithCtx(sched, s, nil)
 }
 
