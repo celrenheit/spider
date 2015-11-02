@@ -6,6 +6,7 @@ type ConstantSchedule struct {
 	Interval time.Duration
 }
 
+// Every returns a ConstantSchedule that runs every duration given as parameter.
 func Every(duration time.Duration) ConstantSchedule {
 	if duration < time.Second {
 		duration = time.Second

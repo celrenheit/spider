@@ -10,6 +10,7 @@ type CronSchedule struct {
 	Expression *cronexpr.Expression
 }
 
+// Cron returns a CronSchedule using the cron expression giving as parameter of the function.
 func Cron(expression string) CronSchedule {
 	expr := cronexpr.MustParse(expression)
 	return CronSchedule{

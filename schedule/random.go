@@ -9,11 +9,16 @@ func init() {
 	rand.Seed(int64(time.Now().Nanosecond()))
 }
 
+// RandomInterval defines a random interval schedule.
 type RandomInterval struct {
 	Interval   time.Duration
 	Randomness float64
 }
 
+// EveryRandom takes an interval with an ajustable plus or minus percentage of this interval.
+// The plusOrMinus paramter should be between 0 and 1.
+// It returns a Schedule.
+// For example, EveryRandom(4*time.Second, 0.5) will return a Schedule that can return between 2 and 6 seconds.
 func EveryRandom(interval time.Duration, plusOrMinus float64) RandomInterval {
 
 	if interval < time.Second {
