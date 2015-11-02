@@ -25,18 +25,18 @@ func NewHTTPSpider(method, url string, body io.Reader, fn spinFunc) *spiderFunc 
 	}
 }
 
-func NewGETSpider(url string, fn spinFunc) *spiderFunc {
+func Get(url string, fn spinFunc) *spiderFunc {
 	return NewHTTPSpider("GET", url, nil, fn)
 }
 
-func NewPOSTSpider(url string, body io.Reader, fn spinFunc) *spiderFunc {
+func Post(url string, body io.Reader, fn spinFunc) *spiderFunc {
 	return NewHTTPSpider("POST", url, body, fn)
 }
 
-func NewPUTSpider(url string, body io.Reader, fn spinFunc) *spiderFunc {
+func Put(url string, body io.Reader, fn spinFunc) *spiderFunc {
 	return NewHTTPSpider("PUT", url, body, fn)
 }
 
-func NewDELETESpider(url string, fn spinFunc) *spiderFunc {
+func Delete(url string, fn spinFunc) *spiderFunc {
 	return NewHTTPSpider("DELETE", url, nil, fn)
 }
