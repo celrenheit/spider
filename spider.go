@@ -9,12 +9,8 @@ type Spider interface {
 	Spin(*Context) error
 }
 
-type SpinnerFunc func(ctx *Context) error
-
-func (s SpinnerFunc) Spin(ctx *Context) error {
-	return s(ctx)
-}
-
+// Schedule is an interface with only a Next method.
+// Next will return the next time it should run given the current time as a parameter.
 type Schedule interface {
 	Next(time.Time) time.Time
 }

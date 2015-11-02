@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// InMemory is the default scheduler
 type InMemory struct {
 	entries Entries
 	addCh   chan *Entry
@@ -12,6 +13,7 @@ type InMemory struct {
 	running bool
 }
 
+// NewScheduler returns a new InMemory scheduler
 func NewScheduler() *InMemory {
 	return &InMemory{
 		addCh:   make(chan *Entry),
@@ -20,6 +22,7 @@ func NewScheduler() *InMemory {
 	}
 }
 
+// Entry groups a spider, its root context, a Schedule and the Next time the spider must be launched
 type Entry struct {
 	Spider   Spider
 	Schedule Schedule
@@ -27,6 +30,8 @@ type Entry struct {
 	Next     time.Time
 }
 
+// Entries is a collection of Entry.
+// Sortable by time.
 type Entries []*Entry
 
 func (e Entries) Len() int      { return len(e) }
@@ -41,10 +46,12 @@ func (e Entries) Less(i, j int) bool {
 	return e[i].Next.Before(e[j].Next)
 }
 
+// Add adds a spider using a nil root Context
 func (in *InMemory) Add(sched Schedule, spider Spider) {
 	in.AddWithCtx(sched, spider, nil)
 }
 
+// AddWithCtx adds a spider with a root Context passed in the arguments
 func (in *InMemory) AddWithCtx(sched Schedule, spider Spider, ctx *Context) {
 	entry := &Entry{
 		Spider:   spider,
@@ -58,11 +65,16 @@ func (in *InMemory) AddWithCtx(sched Schedule, spider Spider, ctx *Context) {
 	in.addCh <- entry
 }
 
+// AddFunc allows to add a spider using an url and a closure.
+// It is by default using the GET HTTP method.
 func (in *InMemory) AddFunc(sched Schedule, url string, fn func(*Context) error) {
 	s := Get(url, fn)
 	in.AddWithCtx(sched, s, nil)
 }
 
+// Start launch the scheduler.
+// It will run in its own goroutine.
+// Your code will continue to be execute after calling this function.
 func (in *InMemory) Start() {
 	in.running = true
 	go in.start()
@@ -107,6 +119,8 @@ func (in *InMemory) start() {
 	}
 }
 
+// Stop the scheduler.
+// Should be called after Start.
 func (in *InMemory) Stop() {
 	in.stopCh <- struct{}{}
 	in.running = false
@@ -115,18 +129,22 @@ func (in *InMemory) Stop() {
 // Standard Scheduler
 var stdSched = NewScheduler()
 
+// Add adds a spider to the standard scheduler
 func Add(sched Schedule, spider Spider) {
 	stdSched.Add(sched, spider)
 }
 
+// AddFunc allows to add a spider to the standard scheduler using an url and a closure.
 func AddFunc(sched Schedule, url string, fn func(*Context) error) {
 	stdSched.AddFunc(sched, url, fn)
 }
 
+// Start starts the standard scheduler
 func Start() {
 	stdSched.Start()
 }
 
+// Stop stops the standard scheduler
 func Stop() {
 	stdSched.Stop()
 }
