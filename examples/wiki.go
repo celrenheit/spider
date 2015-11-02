@@ -2,13 +2,11 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/url"
 	"time"
 
 	"github.com/celrenheit/spider"
-	"github.com/celrenheit/spider/schedulers"
-	"github.com/celrenheit/spider/spiderutils"
+	"github.com/celrenheit/spider/schedule"
 )
 
 var (
@@ -17,15 +15,24 @@ var (
 	// Ensure WikipediaJSONSpider implements spider.Spider interface
 	_ spider.Spider = (*WikipediaJSONSpider)(nil)
 )
+var now = time.Now()
 
 func main() {
 	wikiHTMLSpider := &WikipediaHTMLSpider{"Albert Einstein"}
 	wikiJSONSpider := &WikipediaJSONSpider{"Lionel Messi"}
 
-	s := schedulers.NewBasicScheduler()
-	s.Handle(wikiHTMLSpider).Every(30 * time.Second)
-	s.Handle(wikiJSONSpider).Every(20 * time.Second)
-	log.Fatal(s.Start())
+	spider.Add(schedule.Every(7*time.Second), wikiHTMLSpider)
+	spider.Add(schedule.Every(9*time.Second), wikiJSONSpider)
+	spider.Add(schedule.Every(5*time.Second), spider.Get("https://google.com", func(ctx *spider.Context) error {
+		_, err := ctx.DoRequest()
+		if err != nil {
+			fmt.Println("Made request to google")
+		}
+		return nil
+	}))
+	spider.Start()
+
+	<-time.After(26 * time.Second)
 }
 
 type WikipediaHTMLSpider struct {
@@ -34,7 +41,7 @@ type WikipediaHTMLSpider struct {
 
 func (w *WikipediaHTMLSpider) Setup(ctx *spider.Context) (*spider.Context, error) {
 	url := fmt.Sprintf("https://en.wikipedia.org/wiki/%s", w.Title)
-	return spiderutils.NewHTTPContext("GET", url, nil)
+	return spider.NewHTTPContext("GET", url, nil)
 }
 
 func (w *WikipediaHTMLSpider) Spin(ctx *spider.Context) error {
@@ -60,7 +67,7 @@ func (w *WikipediaJSONSpider) Setup(ctx *spider.Context) (*spider.Context, error
 	params := url.Values{}
 	params.Add("titles", w.Title)
 	url := fmt.Sprintf("http://en.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&exintro=&explaintext=&%s", params.Encode())
-	return spiderutils.NewHTTPContext("GET", url, nil)
+	return spider.NewHTTPContext("GET", url, nil)
 }
 
 func (w *WikipediaJSONSpider) Spin(ctx *spider.Context) error {
