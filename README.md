@@ -101,3 +101,7 @@ If you have developed your own spiders or schedulers, I will be pleased to revie
 # License
 
 [MIT License](https://github.com/celrenheit/spider/blob/master/LICENSE)
+
+# Inspiration
+
+[Dkron](https://github.com/victorcoder/dkron) for the new in memory scheduler (as of 0.3)
