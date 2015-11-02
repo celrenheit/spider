@@ -11,11 +11,63 @@ You can see an example app using this package here: [https://github.com/celrenhe
 $ go get -u github.com/celrenheit/spider
 ```
 
-# Documentation
-
-The documentation is hosted on [GoDoc](https://godoc.org/github.com/celrenheit/spider).
-
 # Usage
+
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/celrenheit/spider"
+	"github.com/celrenheit/spider/schedule"
+)
+
+// LionelMessiSpider scrape wikipedia's page for LionelMessi
+// It is defined below in the init function
+var LionelMessiSpider spider.Spider
+
+func main() {
+	// Create a new scheduler
+	scheduler := spider.NewScheduler()
+
+	// Register the spider to be scheduled every 15 seconds
+	scheduler.Add(schedule.Every(15*time.Second), LionelMessiSpider)
+	// Alternatively, you can choose a cron schedule
+	// This will run every minute of every day
+	scheduler.Add(schedule.Cron("* * * * *"), LionelMessiSpider)
+
+	// Start the scheduler
+	scheduler.Start()
+
+	// Exit 5 seconds later to let time for the request to be done.
+	// Depends on your internet connection
+	<-time.After(65 * time.Second)
+}
+
+func init() {
+	LionelMessiSpider = spider.Get("https://en.wikipedia.org/wiki/Lionel_Messi", func(ctx *spider.Context) error {
+		fmt.Println(time.Now())
+		// Execute the request
+		if _, err := ctx.DoRequest(); err != nil {
+			return err
+		}
+
+		// Get goquery's html parser
+		htmlparser, err := ctx.HTMLParser()
+		if err != nil {
+			return err
+		}
+		// Get the first paragraph of the wikipedia page
+		summary := htmlparser.Find("#mw-content-text > p").First().Text()
+
+		fmt.Println(summary)
+		return nil
+	})
+}
+```
+
 
 In order, to create your own spiders you have to implement the [spider.Spider](https://godoc.org/github.com/celrenheit/spider#Spider) interface.
 It has two functions, Setup and Spin.
@@ -25,61 +77,11 @@ Usually, it is in this function that you create a new [http client](https://gola
 
 [Spin](https://godoc.org/github.com/celrenheit/spider#Spider) gets a [Context](https://godoc.org/github.com/celrenheit/spider#Context) do its work and returns an [error](https://godoc.org/builtin#error) if necessarry. It is in this function that you do your work ([do a request](https://godoc.org/github.com/celrenheit/spider#Context.DoRequest), handle response, parse [HTML](https://godoc.org/github.com/celrenheit/spider#Context.HTMLParser) or [JSON](https://godoc.org/github.com/celrenheit/spider#Context.JSONParser), etc...). It should return an error if something didn't happened correctly.
 
-```go
-package main
 
-import (
-	"fmt"
-	"log"
-	"time"
+# Documentation
 
-	"github.com/celrenheit/spider"
-	"github.com/celrenheit/spider/schedulers"
-	"github.com/celrenheit/spider/spiderutils"
-)
+The documentation is hosted on [GoDoc](https://godoc.org/github.com/celrenheit/spider).
 
-func main() {
-	wikiSpider := &WikipediaHTMLSpider{"Albert Einstein"}
-
-	// Create a new scheduler
-	scheduler := schedulers.NewBasicScheduler()
-
-	// Register the spider to be scheduled every 45 seconds
-	scheduler.Handle(wikiSpider).Every(45 * time.Second)
-
-	// Start the scheduler
-	log.Fatal(scheduler.Start())
-}
-
-type WikipediaHTMLSpider struct {
-	Title string
-}
-
-func (w *WikipediaHTMLSpider) Setup(ctx *spider.Context) (*spider.Context, error) {
-	// Define the url of the wikipedia page
-	url := fmt.Sprintf("https://en.wikipedia.org/wiki/%s", w.Title)
-	// Create a context with an http.Client and http.Request
-	return spiderutils.NewHTTPContext("GET", url, nil)
-}
-
-func (w *WikipediaHTMLSpider) Spin(ctx *spider.Context) error {
-	// Execute the request
-	if _, err := ctx.DoRequest(); err != nil {
-		return err
-	}
-
-	// Get goquery's html parser
-	htmlparser, err := ctx.HTMLParser()
-	if err != nil {
-		return err
-	}
-	// Get the first paragraph of the wikipedia page
-	summary := htmlparser.Find("#mw-content-text p").First().Text()
-
-	fmt.Println(summary)
-	return nil
-}
-```
 
 # Examples
 
