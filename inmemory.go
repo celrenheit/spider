@@ -59,7 +59,7 @@ func (in *InMemory) AddWithCtx(sched Schedule, spider Spider, ctx *Context) {
 }
 
 func (in *InMemory) AddFunc(sched Schedule, url string, fn func(*Context) error) {
-	s := NewGETSpider(url, fn)
+	s := Get(url, fn)
 	in.AddWithCtx(sched, s, nil)
 }
 
@@ -69,7 +69,7 @@ func (in *InMemory) Start() {
 }
 
 func (in *InMemory) start() {
-	now := time.Now()
+	now := time.Now().Local()
 	for _, e := range in.entries {
 		e.Next = e.Schedule.Next(now)
 	}
@@ -83,14 +83,17 @@ func (in *InMemory) start() {
 		} else {
 			nextRun = in.entries[0].Next
 		}
+
 		select {
 		case <-time.After(nextRun.Sub(now)):
 			for _, e := range in.entries {
 				if e.Next != nextRun {
 					break
 				}
-				ctx, _ := e.Spider.Setup(e.Ctx)
-				go e.Spider.Spin(ctx)
+				go func(e *Entry) {
+					ctx, _ := e.Spider.Setup(e.Ctx)
+					go e.Spider.Spin(ctx)
+				}(e)
 				e.Next = e.Schedule.Next(nextRun)
 			}
 			continue
@@ -100,11 +103,30 @@ func (in *InMemory) start() {
 		case <-in.stopCh:
 			return
 		}
-		now = time.Now()
+		now = time.Now().Local()
 	}
 }
 
 func (in *InMemory) Stop() {
 	in.stopCh <- struct{}{}
 	in.running = false
+}
+
+// Standard Scheduler
+var stdSched = NewScheduler()
+
+func Add(sched Schedule, spider Spider) {
+	stdSched.Add(sched, spider)
+}
+
+func AddFunc(sched Schedule, url string, fn func(*Context) error) {
+	stdSched.AddFunc(sched, url, fn)
+}
+
+func Start() {
+	stdSched.Start()
+}
+
+func Stop() {
+	stdSched.Stop()
 }
