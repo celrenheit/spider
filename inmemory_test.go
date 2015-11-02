@@ -10,7 +10,7 @@ import (
 
 func TestInMemory(t *testing.T) {
 	ran := false
-	testSpider := spider.NewGETSpider("http://google.com", func(ctx *spider.Context) error {
+	testSpider := spider.Get("http://google.com", func(ctx *spider.Context) error {
 		ran = true
 		return nil
 	})
@@ -30,7 +30,7 @@ func TestInMemory(t *testing.T) {
 
 func TestNotRanWhenStopped(t *testing.T) {
 	ran := false
-	testSpider := spider.NewGETSpider("http://google.com", func(ctx *spider.Context) error {
+	testSpider := spider.Get("http://google.com", func(ctx *spider.Context) error {
 		ran = true
 		return nil
 	})
