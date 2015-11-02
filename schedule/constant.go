@@ -17,5 +17,5 @@ func Every(duration time.Duration) ConstantSchedule {
 }
 
 func (c ConstantSchedule) Next(current time.Time) time.Time {
-	return current.Add(c.Interval).Round(1 * time.Second)
+	return current.Add(c.Interval - time.Duration(current.Nanosecond())*time.Nanosecond)
 }
