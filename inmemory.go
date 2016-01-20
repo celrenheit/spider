@@ -97,15 +97,12 @@ func (in *InMemory) start() {
 		}
 
 		select {
-		case <-time.After(nextRun.Sub(now)):
+		case now = <-time.After(nextRun.Sub(now)):
 			for _, e := range in.entries {
 				if e.Next != nextRun {
 					break
 				}
-				go func(e *Entry) {
-					ctx, _ := e.Spider.Setup(e.Ctx)
-					go e.Spider.Spin(ctx)
-				}(e)
+				go in.runEntry(e)
 				e.Next = e.Schedule.Next(nextRun)
 			}
 			continue
@@ -117,6 +114,11 @@ func (in *InMemory) start() {
 		}
 		now = time.Now().Local()
 	}
+}
+
+func (in *InMemory) runEntry(e *Entry) {
+	ctx, _ := e.Spider.Setup(e.Ctx)
+	e.Spider.Spin(ctx)
 }
 
 // Stop the scheduler.
