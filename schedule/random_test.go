@@ -9,10 +9,10 @@ func TestRange(t *testing.T) {
 	s := EveryRandom(4*time.Second, 0.5)
 	min, max := s.RandomRange()
 	if min != 2*time.Second.Seconds() {
-		t.Errorf("Expected min: %s but got %s", 2*time.Second, min)
+		t.Errorf("Expected min: %s but got %v", 2*time.Second, min)
 	}
 	if max != 6*time.Second.Seconds() {
-		t.Errorf("Expected min: %s but got %s", 6*time.Second, max)
+		t.Errorf("Expected min: %s but got %v", 6*time.Second, max)
 	}
 }
 
